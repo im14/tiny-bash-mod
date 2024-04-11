@@ -76,11 +76,7 @@ permutations() {
   for ((i=0;i<size;i++)); do
     permutations $((size-1)) "${A[@]}"
 
-    if ((size&1)); then
-      k=0
-    else
-      k=$i
-    fi
+    (( k = size&1 ? 0 : i ))
     tmp=${A[k]}
     A[k]=${A[size-1]}
     A[size-1]=$tmp
