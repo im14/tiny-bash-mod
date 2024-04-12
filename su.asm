@@ -6,7 +6,7 @@ SYS_setuid equ 106
 
 section .text
 s:
-  xor rax,rax
+  xor eax,eax
   mov rdi,65534
 
   mov al,SYS_setuid
