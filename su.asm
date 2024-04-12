@@ -6,13 +6,14 @@ SYS_setuid equ 106
 
 section .text
 s:
+  xor rax,rax
   mov rdi,65534
 
   mov al,SYS_setuid
-	syscall
+  syscall
 
   mov al,SYS_setgid
-	syscall
+  syscall
 
   ret
 
