@@ -4,6 +4,10 @@ obj=su.o
 noshstrtab=s.notab
 out=s
 
+ldoptions=( --hash-style=sysv )
+
+#####
+
 declare -a S=(
   ".dynsym   : { *(.dynsym) }"
   ".rela.dyn : { *(.rela.data) }"
@@ -29,7 +33,7 @@ OUTPUT_FORMAT("elf64-x86-64")
 OUTPUT_ARCH(i386:x86-64)
 SECTIONS
 {
-  . = 256;
+  . = SIZEOF_HEADERS;
 '
   for i do printf '%s\n' "${S[i]}"; done
   printf '/DISCARD/   : { *(*) }\n }\n'
@@ -38,8 +42,8 @@ SECTIONS
 link() {
   local pos=$1 max=$2 order=$3
 
-  ld -T <(ldscript $order) --hash-style=sysv -shared -o "$out" "$obj" 2>/dev/null
-  strip "$out"
+  ld "${ldoptions[@]}" -T <(ldscript $order) -shared -o "$out" "$obj" 2>/dev/null
+  strip "$out" || exit
   rmshstrtab
 }
 
