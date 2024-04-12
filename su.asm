@@ -6,15 +6,12 @@ SYS_setuid equ 106
 
 section .text
 s:
-  push 65534
-  pop rdi
+  mov rdi,65534
 
-  push SYS_setuid
-  pop rax
+  mov al,SYS_setuid
 	syscall
 
-	push SYS_setgid
-  pop rax
+  mov al,SYS_setgid
 	syscall
 
   ret
