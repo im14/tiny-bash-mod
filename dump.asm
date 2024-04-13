@@ -10,7 +10,7 @@
 
 BITS 64
 
-org 0
+; SECTION_TEMPLATE
 
 section EHdr start=0
 EHdr_addr equ $

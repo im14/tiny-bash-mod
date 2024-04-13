@@ -9,15 +9,19 @@ ldoptions=( --hash-style=sysv )
 
 #####
 
-declare -a S=(
-  ".dynsym   : { *(.dynsym) }"
-  ".rela.dyn : { *(.rela.data) }"
-  ".hash     : { *(.hash) }"
-  ".dynstr   : { *(.dynstr) }"
-  ".dynamic  : { *(.dynamic) }"
-  ".text     : { *(.text) }"
-  ".data     : { *(.data) }"
-)
+if [[ $fmt = bin ]]; then
+  declare -a S=( rela symtab dynamic PHdr strtab code .data )
+else
+  declare -a S=(
+    ".dynsym   : { *(.dynsym) }"
+    ".rela.dyn : { *(.rela.data) }"
+    ".hash     : { *(.hash) }"
+    ".dynstr   : { *(.dynstr) }"
+    ".dynamic  : { *(.dynamic) }"
+    ".text     : { *(.text) }"
+    ".data     : { *(.data) }"
+  )
+fi
 
 # TODO: could probably save more room if the section was removed properly from headers
 rmshstrtab() {
@@ -27,7 +31,7 @@ rmshstrtab() {
 }
 
 ldscript() {
-  local s
+  local i
 
   printf '
 OUTPUT_FORMAT("elf64-x86-64")
@@ -40,12 +44,30 @@ SECTIONS
   printf '/DISCARD/   : { *(*) }\n }\n'
 }
 
+[[ $fmt = bin ]] && ldscript() {
+  local i
+  printf 'SECTION EHdr\\\n'
+  printf 'SECTION %s follows=EHdr\\\n' "${S[$1]}"
+  for ((i = 2; i <= $#; i++)); do
+    printf 'SECTION %s follows=%s\\\n' "${S[${@:i:1}]}" "${S[${@:i-1:1}]}" 
+  done
+  printf ';\n'
+}
+
 link() {
   local pos=$1 max=$2 order=$3
 
   ld "${ldoptions[@]}" -T <(ldscript $order) -shared -o "$out" "$obj" 2>/dev/null
   strip "$out" || exit
   rmshstrtab
+}
+
+# dynamic codessss
+[[ $fmt = bin ]] &&
+link() {
+  local pos=$1 max=$2 order=$3
+  sed "s/^; SECTION_TEMPLATE/$(ldscript $order)/" "$in" > tmp.asm
+  nasm -f bin -o "$noshstrtab" tmp.asm
 }
 
 zips() {
@@ -89,7 +111,7 @@ permutations() {
 }
 
 # quick version :)
-#permutations() { shift; echo "$@"; }
+permutations() { shift; echo "$@"; }
 
 status() {
   printf '%s[%4d/%4d] size=%d%s' "$(tput sc)" $1 $2 $min "$(tput rc)"
@@ -97,17 +119,21 @@ status() {
 
 #### main mess
 
+
 min=0
 declare -a A=( {0..6} )
 declare -A code=() msg=()
 
+if (( $# == ${#A[@]} )); then
+  ldscript $*
+  exit
+fi
+
 if [[ $fmt = elf64 ]]; then
   nasm -f "$fmt" -o "$obj" "$in"
 elif [[ $fmt = bin ]]; then
-  # skip pretty much everything
-  nasm -f bin -o "$noshstrtab" "$in"
-  zips 1 1 bin
-  exit 0
+  # done in link()..
+  :
 else
   printf '$fmt needs to be elf64 or bin'
 fi
