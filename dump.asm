@@ -6,6 +6,7 @@
 ;            467 remove final NULL from dynamic
 ;            465 overlap "s",0 module_name somewhere
 ;            445 overlap HASH on SYMTAB:0 (didn't help gzip output still 276)
+;            413 remove STRSZ and SYMENT from dynamic (gzip 268)
 
 BITS 64
 
@@ -99,8 +100,8 @@ dq 0x6,symtab_addr        ; SYMTAB
 dq 0x7,rela_addr          ; RELA
 dq 0x8,rela_sz            ; RELASZ
 dq 0x9,0x18               ; RELAENT
-dq 0xa,0xa                ; STRSZ
-dq 0xb,0x18               ; SYMENT
+;dq 0xa,0xa                ; STRSZ
+;dq 0xb,0x18               ; SYMENT
 ;dq 0x0,0x0               ; NULL
 
 dynamic_sz equ $ - $$
