@@ -5,6 +5,7 @@
 ;            483 remove RELACOUNT from dynamic
 ;            467 remove final NULL from dynamic
 ;            465 overlap "s",0 module_name somewhere
+;            445 overlap HASH on SYMTAB:0 (didn't help gzip output still 276)
 
 BITS 64
 
@@ -71,16 +72,16 @@ dq 8                      ; r_info
 dq s                      ; r_addend
 
 rela_sz equ $ - $$
-section hash
-hash_addr equ $
-
-dd 1                      ; nbucket
-dd 2                      ; nchain
-dd 1                      ; bucket[0]
-dd 0                      ;  chain[0]
-dd 0                      ;  chain[1]
-
-hash_sz equ $ - $$
+; moved into .sym0
+;section hash
+;hash_addr equ $
+;
+;dd 1                      ; nbucket
+;dd 2                      ; nchain
+;dd 1                      ; bucket[0]
+;dd 0                      ;  chain[0]
+;dd 0                      ;  chain[1]
+;hash_sz equ $ - $$
 section strtab
 strtab_addr equ $
 
@@ -108,11 +109,9 @@ symtab_addr equ $
 
 .sym0:
 dd 0                      ; st_name
-db 0                      ; st_info
-db 0                      ; st_other
-dw 0                      ; st_shndx
-dq 0x0                    ; st_value
-dq 0                      ; st_size
+; overlap HASH. seems fine as long as idx=0 has st_name=0
+hash_addr equ $
+dd 1,2,1,0,0
 
 .sym1:
 dd 1                      ; st_name (s_struct)
