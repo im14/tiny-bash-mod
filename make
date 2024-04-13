@@ -1,5 +1,6 @@
 #!/bin/bash
-in=su.asm
+fmt=bin
+in=dump.asm
 obj=su.o
 noshstrtab=s.notab
 out=s
@@ -96,11 +97,20 @@ status() {
 
 #### main mess
 
-nasm -f elf64 -o "$obj" "$in"
-
 min=0
 declare -a A=( {0..6} )
 declare -A code=() msg=()
+
+if [[ $fmt = elf64 ]]; then
+  nasm -f "$fmt" -o "$obj" "$in"
+elif [[ $fmt = bin ]]; then
+  # skip pretty much everything
+  nasm -f bin -o "$noshstrtab" "$in"
+  zips 1 1 bin
+  exit 0
+else
+  printf '$fmt needs to be elf64 or bin'
+fi
 
 max=$(permutations "${#A[@]}" "${A[@]}" | wc -l)
 
