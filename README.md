@@ -65,11 +65,12 @@ We still have 5 sections looking like:
        02     .dynamic .data
        03     .dynamic
        04     .dynamic
-We don't care about security we can load everything in 1 section that's RWX and have just two program headers. One LOAD and one DYNAMIC. Now we're at 5144 bytes -- a savings of 3712 bytes! Section headers (.shstrtab) start at 4568 so removing them saves 576 bytes.
+
+We don't care about security we can load everything in 1 section that's RWX and have just two program headers. One LOAD and one DYNAMIC. Now we're at 5144 bytes -- a savings of 3712 bytes! Once we have our own ld script that discards lots of sections, we don't need that ld flag to remove `.eh_frame` anymore, it's gone.
 
 ### Holes
 
-Well I got it down to 413 bytes so there must be a lot more to remove... The current program headers:
+The current program headers:
 
     Program Headers:
       Type           Offset             VirtAddr           PhysAddr
@@ -83,4 +84,4 @@ That first LOAD offset is 0x1000 - that's 4K! Do we need that many zeros? No. Us
 
 ## Anymore FAT to trim?
 
-Well that's where I throw together `elf2nasm.c` to get a clear view of the structure. It's not polished by any means. It was just enough to get this one-off program in a form I could start hacking away at. I found things still ran without having RELACOUNT, STRSZ, and SYMENT in the dynstr section. Then the rest of the savings are likely just overlapping things that can be re-used on top of things that don't matter so much but are sorta necessary. So right now that's 413 bytes. That's another **30%** less than where we were before deep diving.
+Well that's where I thrww together `elf2nasm.c` to get a clear view of the structure. It's not polished by any means. It was just enough to get this one-off program in a form I could start hacking away at. I found things still ran without having RELACOUNT, STRSZ, and SYMENT in the dynstr section. Then the rest of the savings possible are from overlapping things that can be re-used on top of things that don't matter so much. So right now that's 413 bytes. That's another **30%** less than where we were before deep diving.
